@@ -42,15 +42,13 @@ void setup() {
 int touchCount = 0;
 
 void loop() {
-  int potValue = analogRead(POTENTIOMETER_ANALOG_PIN);
-  
   int connected = digitalRead(WAND_PIN);
   if( connected == 1) {
     touchCount++;
 
+    int potValue = analogRead(POTENTIOMETER_ANALOG_PIN);
     int pitch = (potValue * 3) + 300;
-    Serial.println(pitch);
-    
+    Serial.println(pitch);    
     tone(SPEAKER_PIN, pitch, 200);
     
     // the two wires are connected
