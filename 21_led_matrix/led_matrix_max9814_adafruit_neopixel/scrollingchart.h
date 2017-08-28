@@ -35,21 +35,25 @@ class ScrollingChart : public Animated {
       m_values[m_matrix.width() - 1] = value;
     }
 
+    void drawBar(int col, int value) {
+      int height = m_matrix.height();
+      int h = map(value, 0, m_maxValue, 0, height);
+      if(h > 0) {
+        for(int row = height - h; row < height; row++) {
+          int t = map(row, 0, height - 1, 0, 255);
+          // write individual pixels because each pixel has its own color
+          m_matrix.writePixel(col, row, m_matrix.Color(255 - t, t, 0));
+        }
+      }
+    }
+
   public:
     virtual void onShow() {
       int width = m_matrix.width();
-      int height = m_matrix.height();
       // draw bar for each column
       for(int col = 0; col < width; col++) {
         int value = min(m_values[col], m_maxValue); 
-        int h = map(value, 0, m_maxValue, 0, height);        
-        if(h > 0) {
-          for(int row = height - h; row < height; row++) {
-            int t = map(row, 0, height - 1, 0, 255);
-            // write individual pixels because each pixel has its own color
-            m_matrix.writePixel(col, row, m_matrix.Color(255 - t, t, 0));
-          }
-        }
+        drawBar(col, value);
       }
     }
 
