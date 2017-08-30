@@ -63,7 +63,7 @@ void trafficLights() {
 
   // RED
   setLED(0, 255, 0, 0);
-  setLED(1, 0, 0, 0)
+  setLED(1, 0, 0, 0);
   setLED(2, 0, 0, 0);
   FastLED.show();
   delay(1000);
