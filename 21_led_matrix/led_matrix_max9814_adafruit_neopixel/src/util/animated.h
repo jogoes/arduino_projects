@@ -23,6 +23,7 @@ class Animated {
         m_lastMillis = millis();
       } else if(forceUpdate) {
         onShow();
+        m_lastMillis = millis();
       }
     }
 
