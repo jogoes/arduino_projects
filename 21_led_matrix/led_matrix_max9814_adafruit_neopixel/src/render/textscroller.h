@@ -22,14 +22,19 @@ class TextScroller : public Animated {
 
   public:
     TextScroller(FontRenderer& fontRenderer, const char* message, int row, int delayMs, Color color) : Animated(delayMs),
-      m_fontRenderer(fontRenderer), m_message(message), m_row(row), m_color(color) {
-        m_width = m_fontRenderer.getWidth(message);
+      m_fontRenderer(fontRenderer), m_row(row), m_color(color) {
         m_startPosition = m_fontRenderer.getDisplay().width();
-        m_currentPosition = m_startPosition;
+        setMessage(message);
     }
 
     const char* getMessage() const {
       return m_message;
+    }
+
+    void setMessage(const char* message) {
+      m_width = m_fontRenderer.getWidth(message);
+      m_currentPosition = m_startPosition;
+      m_message = message;
     }
 
     virtual void onShow() {
