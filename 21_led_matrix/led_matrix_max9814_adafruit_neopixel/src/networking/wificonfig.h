@@ -3,15 +3,13 @@
 
 #include "util/properties.h"
 
-#include <vector>
-
 class WiFiConfig {
 public:
-    static void initialize();
+    static void initialize(const Properties& properties);
 
 private:
-    static void initializeClientOnly(const std::vector<Property>& properties);
-    static void initializeClientAndServer(const std::vector<Property>& properties);
+    static void initializeClientOnly(const Properties& properties);
+    static void initializeClientAndServer(const Properties& properties);
 };
 
 #endif

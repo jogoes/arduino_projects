@@ -13,12 +13,13 @@ public:
     }
 
     virtual void onShow() {
+        // connects only if necessary
+        m_client.connect();
         m_client.loop();
     }
   
     virtual void onNext() {
-    }
-  
+    }  
 };
 
 #endif

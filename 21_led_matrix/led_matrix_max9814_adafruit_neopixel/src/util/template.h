@@ -8,7 +8,7 @@
 class Template {
 
 public:
-  static String apply(const String& content, std::map<String, String> replacements);
+  static String apply(const String& content, const std::map<String, String>& replacements);
 
   static String getTemplate(const String& templateName);
 };

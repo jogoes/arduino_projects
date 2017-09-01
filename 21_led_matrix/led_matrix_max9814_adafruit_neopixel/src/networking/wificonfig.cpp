@@ -1,7 +1,6 @@
 #include "wificonfig.h"
 
 #include "util/properties.h"
-#include <vector>
 
 #include <Arduino.h>
 
@@ -10,20 +9,17 @@
 #include "FS.h"
 
 void
-WiFiConfig::initialize() {
-    std::vector<Property> properties;
-    int propertiesRead = Properties::read("/access.properties", properties);
-
+WiFiConfig::initialize(const Properties& properties) {
     initializeClientOnly(properties);
     // initializeClientAndServer(properties);
 }
 
 void 
-WiFiConfig::initializeClientAndServer(const std::vector<Property>& properties) {
+WiFiConfig::initializeClientAndServer(const Properties& properties) {
     Serial.println("initializing WiFi client...");
     
-    String ssid = Properties::getValue("ssid", properties);
-    String password = Properties::getValue("password", properties);
+    String ssid = properties.getValue("ssid");
+    String password = properties.getValue("password");
 
     Serial.print("connecting to : '");
     Serial.print(ssid);
@@ -32,8 +28,8 @@ WiFiConfig::initializeClientAndServer(const std::vector<Property>& properties) {
     Serial.print(password);
     Serial.println("'");
     
-    String serverSSID = Properties::getValue("serverssid", properties);
-    String serverPassword = Properties::getValue("serverpassword", properties);
+    String serverSSID = properties.getValue("serverssid");
+    String serverPassword = properties.getValue("serverpassword");
     
     WiFi.mode(WIFI_AP_STA);
     // TODO password
@@ -52,12 +48,12 @@ WiFiConfig::initializeClientAndServer(const std::vector<Property>& properties) {
 }
 
 void 
-WiFiConfig::initializeClientOnly(const std::vector<Property>& properties) {
+WiFiConfig::initializeClientOnly(const Properties& properties) {
 
     Serial.println("initializing WiFi client...");
 
-    String ssid = Properties::getValue("ssid", properties);
-    String password = Properties::getValue("password", properties);
+    String ssid = properties.getValue("ssid");
+    String password = properties.getValue("password");
 
     Serial.print("connecting to : '");
     Serial.print(ssid);

@@ -6,7 +6,7 @@
 #include <ESP8266WebServer.h>
 
 void
-WebServer::configureWebServer(const std::vector<Property>& properties) {
+WebServer::configureWebServer(const Properties& properties) {
 	Serial.println("Configuring access point...");
   // TODO get this from configuration
   const char *ssidESP = "ESPServer";
@@ -25,7 +25,7 @@ WebServer::configureWebServer(const std::vector<Property>& properties) {
 }
 
 void
-WebServer::start(const std::vector<Property>& properties) {
+WebServer::start(const Properties& properties) {
     IPAddress myIP = WiFi.softAPIP();
     Serial.print("AP IP address: ");
     Serial.println(myIP);

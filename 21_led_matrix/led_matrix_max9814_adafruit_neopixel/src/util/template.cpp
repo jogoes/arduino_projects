@@ -3,7 +3,7 @@
 #include "util/fileutils.h"
 
 String 
-Template::apply(const String& content, std::map<String, String> replacements) {
+Template::apply(const String& content, const std::map<String, String>& replacements) {
     String c(content);
 
     for(auto it = replacements.begin(); it != replacements.end(); it++) {

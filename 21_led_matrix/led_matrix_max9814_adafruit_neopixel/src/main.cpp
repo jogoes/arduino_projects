@@ -38,25 +38,28 @@
 #include "display/display_fastled.h"
 #endif
 
+#include "font/font8x8.h"
 #include "render/fontrenderer.h"
 #include "render/textscroller.h"
 #include "render/scrollingchart.h"
 
-#include "font/font8x8.h"
-
 #include "sensor/max9814.h"
 
-#include "networking/wificonfig.h"
-#include "networking/server/httpserver.h"
-#include "networking/controller/indexcontroller.h"
-
 #include "util/fileutils.h"
-
-#include "ESP8266WebServer.h"
 #include "FS.h"
+
+#include "networking/wificonfig.h"
+
+// #include "networking/server/httpserver.h"
+// #include "networking/controller/indexcontroller.h"
 
 #include "networking/mqtt/mqttclient.h"
 #include "networking/mqtt/mqttpoller.h"
+
+#include "ESP8266WiFi.h"
+// #include "ESP8266WebServer.h"
+
+#include <ArduinoJson.h>
 
 const int LED_DATA_PIN = 6;
 const int AMPLIFIER_PIN = A0;
@@ -87,7 +90,7 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(DISPLAY_WIDTH, DISPLAY_HEIGHT, LE
                             NEO_GRB            + NEO_KHZ800);
 #endif
 
-
+/*
 ESP8266WebServer espServer(80);
 WebServer server(espServer);
 IndexController indexController(server);
@@ -101,41 +104,48 @@ void configureHandlers() {
 
   espServer.on("/", handleIndex);
 }
+*/
 
-String lastMessage = "-";
-String currentMessage = lastMessage;
-
-void
-mqttCallback(const char* topic, byte* payload, unsigned int length) {
-  String message;
-  for(int i = 0; i < length; i++) {
-    message += (char) payload[i];
-  }
-  lastMessage = message;
-  Serial.println(message);
-}
+String currentMessage;
 
 WiFiClient wifiClient;
 PubSubClient pubSubClient(wifiClient);
-MQTTClient mqttClient("ESPTestClient", pubSubClient, "test.mosquitto.org", "com/ajsdkfajdskfasdfa", mqttCallback);
-MQTTPoller mqttPoller(mqttClient, 1000);
+MQTTClient* mqttClient;
+MQTTPoller* mqttPoller;
+
+void
+mqttCallback(const char* topic, byte* payload, unsigned int length) {
+  MQTTClient::onMessageReceived(mqttClient, topic, payload, length);
+}
+
+void setupMQTT(const Properties& accessProperties) {
+  String mqttClientName = accessProperties.getValue("mqtt.clientname");
+  String mqttServer = accessProperties.getValue("mqtt.server");
+  String mqttTopic = accessProperties.getValue("mqtt.topic");
+  
+  mqttClient = new MQTTClient(mqttClientName, pubSubClient, mqttServer, mqttTopic, mqttCallback);
+  mqttPoller = new MQTTPoller(*mqttClient, 1000);
+  mqttClient->connect();
+}
 
 void setup() {
   
   Serial.begin(9600);
 
-  SPIFFS.begin();
-  
+  SPIFFS.begin();  
   FileUtils::ls("/");
 
-  WiFiConfig::initialize();
+  Properties accessProperties;
+  accessProperties.read(String("/access.properties"));
 
+  WiFiConfig::initialize(accessProperties);
+
+  setupMQTT(accessProperties);
+  
   //configureHandlers();
   //std::vector<Property> properties;
   //server.start(properties);
 
-  bool connected = mqttClient.connect();
-  
 #ifdef USE_ADAFRUIT_NEOMATRIX
   matrix.begin();
   matrix.show();
@@ -150,20 +160,20 @@ void setup() {
 }
 
 void loop() {
-
-  bool connected = mqttClient.connect();
-  
-  mqttPoller.next(false);
-
-  if(currentMessage != lastMessage) {
-    currentMessage = lastMessage;
-    textScroller->setMessage(lastMessage.c_str());
+  if(mqttPoller->requiresUpdate()) {
+    mqttPoller->next(false);
+    const String& lastMessage = mqttClient->getLastMessage();
+    if(textScroller != NULL && currentMessage != lastMessage) {
+      currentMessage = lastMessage;
+      textScroller->setMessage(lastMessage.c_str());
+    }
   }
 
-   int noiseLevel = max9814.sampleSignal(SAMPLE_WINDOW_MS);
-   // cut off permanent noise
-   int level = map(std::max(noiseLevel - MIN_THRESHOLD, 0), 0, MAX_AMPLIFIER_VALUE - MIN_THRESHOLD, 0, MAX_AMPLIFIER_VALUE);
-   scrollingChart->setValue(level);
+
+  int noiseLevel = max9814.sampleSignal(SAMPLE_WINDOW_MS);
+  // cut off permanent noise
+  int level = map(std::max(noiseLevel - MIN_THRESHOLD, 0), 0, MAX_AMPLIFIER_VALUE - MIN_THRESHOLD, 0, MAX_AMPLIFIER_VALUE);
+  scrollingChart->setValue(level);
 
   //bool requiresUpdate = textScroller->requiresUpdate();
   bool requiresUpdate = true;
